@@ -1,8 +1,8 @@
-name: Build Windows VST3
+name: Build Windows VST3 - 2024 Core Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ test/2024-core ]
   workflow_dispatch:
 
 jobs:
@@ -13,13 +13,13 @@ jobs:
       - name: Configure
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
       - name: Build
-        run: cmake --build build --config Release --target QSDecoder_VST3
+        run: cmake --build build --config Release --target QSDecoder2024Core_VST3
       - name: Locate VST3
         shell: pwsh
-        run: Get-ChildItem -Path build -Recurse -Filter "QSDecoder.vst3" | Select-Object FullName
+        run: Get-ChildItem -Path build -Recurse -Filter "QSDecoder-2024Core.vst3" | Select-Object FullName
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
-          name: QSDecoder-Windows-x64-VST3
-          path: build/QSDecoder_artefacts/Release/VST3/QSDecoder.vst3
+          name: QSDecoder-2024Core-Windows-x64-VST3
+          path: build/QSDecoder2024Core_artefacts/Release/VST3/QSDecoder-2024Core.vst3
           if-no-files-found: error
