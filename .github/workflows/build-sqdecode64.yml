@@ -1,0 +1,39 @@
+name: Build SQdecode64 Windows VST3
+
+on:
+  push:
+    branches: [ sqdecode64-vst3 ]
+    paths:
+      - 'SQdecode64/**'
+      - '.github/workflows/build-sqdecode64.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Steinberg VST3 SDK
+        working-directory: SQdecode64
+        run: git clone --depth 1 --recurse-submodules https://github.com/steinbergmedia/vst3sdk.git external/vst3sdk
+      - name: Configure x64 Release
+        working-directory: SQdecode64
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+      - name: Build VST3
+        working-directory: SQdecode64
+        run: cmake --build build --config Release --target SQdecode64
+      - name: Stage VST3 bundle
+        run: |
+          $bundle = Get-ChildItem -Path SQdecode64/build -Recurse -Directory -Filter "SQdecode64.vst3" | Select-Object -First 1
+          if (-not $bundle) { throw "SQdecode64.vst3 was not found after build" }
+          New-Item -ItemType Directory -Force -Path artifact | Out-Null
+          Copy-Item -Recurse -Force $bundle.FullName artifact/SQdecode64.vst3
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: SQdecode64-Windows-x64-VST3
+          path: artifact/SQdecode64.vst3
+          if-no-files-found: error
